@@ -40,9 +40,7 @@ func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
 }
 
 func (cfg *apiConfig) getMetrics(res http.ResponseWriter, req *http.Request) {
-	res.Header().Add("Content-Type", "text/plain; charset=utf-8")
-	res.WriteHeader(200)
-	res.Write([]byte(fmt.Sprintf("Hits: %d", cfg.fileserverHits)))
+	plainTextResponse(fmt.Sprintf("Hits: %d", cfg.fileserverHits), res)
 }
 
 func (cfg *apiConfig) htmlMetrics(res http.ResponseWriter, req *http.Request) {
@@ -54,13 +52,17 @@ func (cfg *apiConfig) htmlMetrics(res http.ResponseWriter, req *http.Request) {
 
 func (cfg *apiConfig) resetMetrics(res http.ResponseWriter, req *http.Request) {
 	cfg.fileserverHits = 0
-	res.Header().Add("Content-Type", "text/plain; charset=utf-8")
-	res.WriteHeader(200)
-	res.Write([]byte("reset"))
+	plainTextResponse("reset", res)
 }
 
 func somethingWentWrong(res http.ResponseWriter) {
 	sendErrorResponse("Something went wrong", 500, res)
+}
+
+func plainTextResponse(response string, res http.ResponseWriter) {
+	res.Header().Add("Content-Type", "text/plain; charset=utf-8")
+	res.WriteHeader(200)
+	res.Write([]byte(response))
 }
 
 func sendErrorResponse(err string, statusCode int, res http.ResponseWriter) {
@@ -78,9 +80,7 @@ func main() {
 	sm := http.NewServeMux()
 
 	sm.HandleFunc("GET /api/healthz", func(res http.ResponseWriter, req *http.Request) {
-		res.Header().Add("Content-Type", "text/plain; charset=utf-8")
-		res.WriteHeader(200)
-		res.Write([]byte("OK"))
+		plainTextResponse("OK", res)
 	})
 
 	sm.Handle("/app/*", apicfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(".")))))
