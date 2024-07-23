@@ -25,7 +25,11 @@ func sendErrorResponse(err string, statusCode int, res http.ResponseWriter) {
 	res.Write(dat)
 }
 
-func sendJsonResponse(respBody interface{}, res http.ResponseWriter) {
+func sendOkJsonResponse(respBody interface{}, res http.ResponseWriter) {
+	sendJsonResponse(respBody, res, 200)
+}
+
+func sendJsonResponse(respBody interface{}, res http.ResponseWriter, statusCode int) {
 	dat, err := json.Marshal(respBody)
 	if err != nil {
 		somethingWentWrong(res)
@@ -33,6 +37,6 @@ func sendJsonResponse(respBody interface{}, res http.ResponseWriter) {
 	}
 
 	res.Header().Add("Content-Type", "application/json")
-	res.WriteHeader(200)
+	res.WriteHeader(statusCode)
 	res.Write(dat)
 }
