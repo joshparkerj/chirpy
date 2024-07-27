@@ -2,9 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func main() {
@@ -29,25 +30,19 @@ func main() {
 		chirpID := req.PathValue("chirpID")
 		db, err := newDB(dbFilename)
 		if err != nil {
-			log.Default().Println("error in newDB")
-			log.Default().Println(err)
-			somethingWentWrong(res)
+			handleApiError(err, "error in newDB", 500, res)
 			return
 		}
 
 		chirps, err := db.GetChirps()
 		if err != nil {
-			log.Default().Println("error in GetChirps")
-			log.Default().Println(err)
-			somethingWentWrong(res)
+			handleApiError(err, "error in GetChirps", 500, res)
 			return
 		}
 
 		idNum, err := strconv.Atoi(chirpID)
 		if err != nil {
-			log.Default().Println("error in Atoi")
-			log.Default().Println(err)
-			somethingWentWrong(res)
+			handleApiError(err, "error in Atoi", 500, res)
 			return
 		}
 
@@ -62,17 +57,13 @@ func main() {
 	sm.HandleFunc("GET /api/chirps", func(res http.ResponseWriter, req *http.Request) {
 		db, err := newDB(dbFilename)
 		if err != nil {
-			log.Default().Println("error in newDB")
-			log.Default().Println(err)
-			somethingWentWrong(res)
+			handleApiError(err, "error in newDB", 500, res)
 			return
 		}
 
 		chirps, err := db.GetChirps()
 		if err != nil {
-			log.Default().Println("error in GetChirps")
-			log.Default().Println(err)
-			somethingWentWrong(res)
+			handleApiError(err, "error in GetChirps", 500, res)
 			return
 		}
 
@@ -82,9 +73,8 @@ func main() {
 	sm.HandleFunc("POST /api/chirps", func(res http.ResponseWriter, req *http.Request) {
 		db, err := newDB(dbFilename)
 		if err != nil {
-			log.Default().Println("error in newDB")
-			log.Default().Println(err)
-			somethingWentWrong(res)
+			handleApiError(err, "error in newDB", 500, res)
+			return
 		}
 
 		decoder := json.NewDecoder(req.Body)
@@ -92,9 +82,7 @@ func main() {
 		err = decoder.Decode(&params)
 
 		if err != nil {
-			log.Default().Println("error in Decode")
-			log.Default().Println(err)
-			somethingWentWrong(res)
+			handleApiError(err, "error in Decode", 500, res)
 			return
 		}
 
@@ -105,13 +93,87 @@ func main() {
 
 		chirp, err := db.CreateChirp(unprofane)
 		if err != nil {
-			log.Default().Println("error in CreateChirp")
-			log.Default().Println(err)
-			somethingWentWrong(res)
+			handleApiError(err, "error in CreateChirp", 500, res)
 			return
 		}
 
 		sendJsonResponse(chirp, res, 201)
+	})
+
+	sm.HandleFunc("POST /api/users", func(res http.ResponseWriter, req *http.Request) {
+		db, err := newDB(dbFilename)
+		if err != nil {
+			handleApiError(err, "error in newDB", 500, res)
+			return
+		}
+
+		decoder := json.NewDecoder(req.Body)
+		reqNewUser := newUser{}
+		err = decoder.Decode(&reqNewUser)
+
+		if err != nil {
+			handleApiError(err, "error in Decode", 500, res)
+			return
+		}
+
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(reqNewUser.Password), 10)
+		if err != nil {
+			handleApiError(err, "error in GenerateFromPassword", 500, res)
+			return
+		}
+
+		user, err := db.CreateUser(reqNewUser.Email, string(hashedPassword))
+		if err != nil {
+			handleApiError(err, "error in CreateUser", 500, res)
+			return
+		}
+
+		resUser := userPasswordRedacted{
+			Email: user.Email,
+			ID:    user.ID,
+		}
+
+		sendJsonResponse(resUser, res, 201)
+	})
+
+	sm.HandleFunc("POST /api/login", func(res http.ResponseWriter, req *http.Request) {
+		db, err := newDB(dbFilename)
+		if err != nil {
+			handleApiError(err, "error in newDB", 500, res)
+		}
+
+		decoder := json.NewDecoder(req.Body)
+		reqUser := newUser{}
+		err = decoder.Decode(&reqUser)
+
+		if err != nil {
+			handleApiError(err, "error in Decode", 500, res)
+			return
+		}
+
+		dbUser, err := db.GetUser(reqUser.Email)
+		if err != nil {
+			handleApiError(err, "error in GetUser", 500, res)
+			return
+		}
+
+		if dbUser == nil {
+			handleApiError(nil, "unauthorized", 401, res)
+			return
+		}
+
+		err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(reqUser.Password))
+		if err != nil {
+			handleApiError(nil, "unauthorized", 401, res)
+			return
+		}
+
+		resUser := userPasswordRedacted{
+			Email: dbUser.Email,
+			ID:    dbUser.ID,
+		}
+
+		sendJsonResponse(resUser, res, 200)
 	})
 
 	server := &http.Server{

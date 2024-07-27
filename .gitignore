@@ -1,4 +1,6 @@
 *.png
 *.png*
+*.jpg
 tags
 database.json
+*tt.go

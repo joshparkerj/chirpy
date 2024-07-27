@@ -11,3 +11,13 @@ type parameters struct {
 type cleanedResponse struct {
 	CleanedBody string `json:"cleaned_body"`
 }
+
+type newUser struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type userPasswordRedacted struct {
+	ID    int    `json:"id"`
+	Email string `json:"email"`
+}
