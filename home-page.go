@@ -11,6 +11,7 @@ func handleHomePage(w http.ResponseWriter, _ *http.Request) {
 <head></head>
 <body>
 	<p> Hello from (ideally) Docker! I'm a Go server. </p>
+	<p> Hello from Docker! I'm a Go server. </p>
 </body>
 </html>
 `

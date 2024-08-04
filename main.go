@@ -2,10 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"net/http"
-	"strconv"
-
 	"golang.org/x/crypto/bcrypt"
+	"net/http"
+	"os"
+	"strconv"
 )
 
 func main() {
@@ -178,10 +178,13 @@ func main() {
 
 	sm.HandleFunc("/", handleHomePage)
 
+	defaultPort := os.Getenv("PORT")
 	server := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":" + defaultPort,
 		Handler: sm,
 	}
+
+	jiggerPort(server)
 
 	consoleLog("now about to listen and serve on " + server.Addr)
 	for err := server.ListenAndServe(); err != nil; {
