@@ -176,10 +176,18 @@ func main() {
 		sendJsonResponse(resUser, res, 200)
 	})
 
+	sm.HandleFunc("/", handleHomePage)
+
 	server := &http.Server{
 		Addr:    ":8080",
 		Handler: sm,
 	}
 
-	server.ListenAndServe()
+	consoleLog("now about to listen and serve on " + server.Addr)
+	for err := server.ListenAndServe(); err != nil; {
+		consoleLog(err.Error())
+		rejiggerPort(server)
+		consoleLog("now about to listen and serve on " + server.Addr)
+		err = server.ListenAndServe()
+	}
 }

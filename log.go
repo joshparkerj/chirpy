@@ -12,3 +12,7 @@ func handleApiError(err error, msg string, statusCode int, res http.ResponseWrit
 	errorString := fmt.Sprintf("%s %s", msg, err)
 	sendErrorResponse(errorString, statusCode, res)
 }
+
+func consoleLog(msg string) {
+	fmt.Println(msg)
+}
