@@ -15,9 +15,11 @@ type cleanedResponse struct {
 type newUser struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+	Expiry   int    `json:"expires_in_seconds"`
 }
 
 type userPasswordRedacted struct {
 	ID    int    `json:"id"`
 	Email string `json:"email"`
+	Token string `json:"token"`
 }

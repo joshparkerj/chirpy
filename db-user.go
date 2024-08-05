@@ -1,23 +1,23 @@
 package main
 
-func (db *DB) CreateUser(email string, password string) (User, error) {
-	user := User{}
+func (db *DB) CreateUser(email string, password string) (user User, err error) {
+	user = User{}
 	user.Email = email
 	user.Password = password
-	err := db.ensureDB()
+	err = db.ensureDB()
 	if err != nil {
-		return user, err
+		return
 	}
 
 	databaseStructure, err := db.loadDB()
 	if err != nil {
-		return user, err
+		return
 	}
 
 	user.ID = len(databaseStructure.Users) + 1
 	databaseStructure.Users[user.ID] = user
 	db.writeDB(databaseStructure)
-	return user, nil
+	return
 }
 
 func (db *DB) GetUser(email string) (*User, error) {
@@ -38,4 +38,26 @@ func (db *DB) GetUser(email string) (*User, error) {
 	}
 
 	return nil, nil
+}
+
+func (db *DB) UpdateUser(email, password string, userId int) (user User, err error) {
+	user = User{
+		Email:    email,
+		Password: password,
+		ID:       userId,
+	}
+
+	err = db.ensureDB()
+	if err != nil {
+		return
+	}
+
+	databaseStructure, err := db.loadDB()
+	if err != nil {
+		return
+	}
+
+	databaseStructure.Users[user.ID] = user
+	db.writeDB(databaseStructure)
+	return
 }
