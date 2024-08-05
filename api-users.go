@@ -6,15 +6,15 @@ import (
 	"net/http"
 )
 
-func postUser(res http.ResponseWriter, req *http.Request) {
-	db, err := newDB(dbFilename)
+func prepUser(res http.ResponseWriter, req *http.Request) (db *DB, hashedPassword []byte, reqNewUser newUser, err error) {
+	db, err = newDB(dbFilename)
 	if err != nil {
 		handleApiError(err, "error in newDB", 500, res)
 		return
 	}
 
 	decoder := json.NewDecoder(req.Body)
-	reqNewUser := newUser{}
+	reqNewUser = newUser{}
 	err = decoder.Decode(&reqNewUser)
 
 	if err != nil {
@@ -22,9 +22,18 @@ func postUser(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(reqNewUser.Password), 10)
+	hashedPassword, err = bcrypt.GenerateFromPassword([]byte(reqNewUser.Password), 10)
 	if err != nil {
 		handleApiError(err, "error in GenerateFromPassword", 500, res)
+		return
+	}
+
+	return
+}
+
+func postUser(res http.ResponseWriter, req *http.Request) {
+	db, hashedPassword, reqNewUser, err := prepUser(res, req)
+	if err != nil {
 		return
 	}
 
@@ -50,22 +59,8 @@ func putUser(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	db, err := newDB(dbFilename)
+	db, hashedPassword, reqNewUser, err := prepUser(res, req)
 	if err != nil {
-		handleApiError(err, "error in newDB", 500, res)
-		return
-	}
-
-	decoder := json.NewDecoder(req.Body)
-	reqNewUser := newUser{}
-	err = decoder.Decode(&reqNewUser)
-	if err != nil {
-		handleApiError(err, "error in Decode", 500, res)
-	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(reqNewUser.Password), 10)
-	if err != nil {
-		handleApiError(err, "error in GenerateFromPassword", 500, res)
 		return
 	}
 
