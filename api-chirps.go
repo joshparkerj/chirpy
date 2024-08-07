@@ -51,6 +51,12 @@ func getChirps(res http.ResponseWriter, req *http.Request) {
 }
 
 func postChirp(res http.ResponseWriter, req *http.Request) {
+	userId, err := authorize(req)
+	if err != nil {
+		handleApiError(nil, "unauthorized", 401, res)
+		return
+	}
+
 	db, err := newDB(dbFilename)
 	if err != nil {
 		handleApiError(err, "error in newDB", 500, res)
@@ -71,11 +77,55 @@ func postChirp(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	chirp, err := db.CreateChirp(unprofane)
+	chirp, err := db.CreateChirp(unprofane, userId)
 	if err != nil {
 		handleApiError(err, "error in CreateChirp", 500, res)
 		return
 	}
 
 	sendJsonResponse(chirp, res, 201)
+}
+
+func deleteChirp(res http.ResponseWriter, req *http.Request) {
+	chirpID := req.PathValue("chirpID")
+	userId, err := authorize(req)
+	if err != nil {
+		handleApiError(nil, "unauthorized", 401, res)
+		return
+	}
+
+	db, err := newDB(dbFilename)
+	if err != nil {
+		handleApiError(err, "error in newDB", 500, res)
+		return
+	}
+
+	idNum, err := strconv.Atoi(chirpID)
+	if err != nil {
+		handleApiError(err, "error in Atoi", 500, res)
+		return
+	}
+
+	chirps, err := db.GetChirps()
+	if err != nil {
+		handleApiError(err, "error in GetChirps", 500, res)
+		return
+	}
+
+	chirp := find(chirps, idNum)
+	if chirp == nil {
+		handleApiError(nil, "not found", 404, res)
+		return
+	} else if chirp.AuthorId != userId {
+		handleApiError(nil, "not authorized", 403, res)
+		return
+	}
+
+	err = db.DeleteChirp(idNum)
+	if err != nil {
+		handleApiError(err, "error in DeleteChirp", 500, res)
+		return
+	}
+
+	sendJsonResponse(nil, res, 204)
 }

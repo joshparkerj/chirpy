@@ -1,5 +1,9 @@
 package main
 
+import (
+	"errors"
+)
+
 func (db *DB) CreateUser(email string, password string) (user User, err error) {
 	user = User{}
 	user.Email = email
@@ -38,6 +42,27 @@ func (db *DB) GetUser(email string) (*User, error) {
 	}
 
 	return nil, nil
+}
+
+func (db *DB) GetUserByID(userId int) (user *User, err error) {
+	err = db.ensureDB()
+	if err != nil {
+		return
+	}
+
+	databaseStructure, err := db.loadDB()
+	if err != nil {
+		return
+	}
+
+	userVal, ok := databaseStructure.Users[userId]
+	if !ok {
+		err = errors.New("user not found")
+		return
+	}
+
+	user = &userVal
+	return
 }
 
 func (db *DB) UpdateUser(email, password string, userId int) (user User, err error) {

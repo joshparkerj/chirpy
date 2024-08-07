@@ -43,7 +43,13 @@ func main() {
 
 	sm.HandleFunc("POST /api/login", postLogin)
 
+	sm.HandleFunc("POST /api/refresh", postRefresh)
+
+	sm.HandleFunc("POST /api/revoke", revoke)
+
 	sm.HandleFunc("/", handleHomePage)
+
+	sm.HandleFunc("DELETE /api/chirps/{chirpID}", deleteChirp)
 
 	defaultPort := os.Getenv("PORT")
 	server := &http.Server{

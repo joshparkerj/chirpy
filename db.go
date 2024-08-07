@@ -38,8 +38,11 @@ func createNewDatabaseFile() error {
 	dbStructure := DBStructure{}
 
 	// don't forget to initialize database structures here!
+	// TODO: find a way to eliminate the need to initialize each database structure here
+	// (because it's too easy to forget when adding addtional database structures)
 	dbStructure.Chirps = make(map[int]Chirp, 0)
 	dbStructure.Users = make(map[int]User, 0)
+	dbStructure.Tokens = make(map[int]Token, 0)
 
 	newContent, err := json.Marshal(dbStructure)
 	if err != nil {

@@ -1,7 +1,7 @@
 package main
 
 // CreateChirp creates a new chirp and saves it to disc
-func (db *DB) CreateChirp(body string) (Chirp, error) {
+func (db *DB) CreateChirp(body string, authorId int) (Chirp, error) {
 	chirp := Chirp{}
 	chirp.Body = body
 	err := db.ensureDB()
@@ -15,6 +15,7 @@ func (db *DB) CreateChirp(body string) (Chirp, error) {
 	}
 
 	chirp.ID = len(databaseStructure.Chirps) + 1
+	chirp.AuthorId = authorId
 	databaseStructure.Chirps[chirp.ID] = chirp
 	db.writeDB(databaseStructure)
 	return chirp, nil
@@ -48,4 +49,20 @@ func (db *DB) GetChirps() ([]Chirp, error) {
 	}
 
 	return chirps, nil
+}
+
+func (db *DB) DeleteChirp(chirpId int) (err error) {
+	err = db.ensureDB()
+	if err != nil {
+		return
+	}
+
+	databaseStructure, err := db.loadDB()
+	if err != nil {
+		return
+	}
+
+	delete(databaseStructure.Chirps, chirpId)
+	db.writeDB(databaseStructure)
+	return
 }

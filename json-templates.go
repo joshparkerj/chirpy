@@ -19,7 +19,12 @@ type newUser struct {
 }
 
 type userPasswordRedacted struct {
-	ID    int    `json:"id"`
-	Email string `json:"email"`
+	ID           int    `json:"id"`
+	Email        string `json:"email"`
+	Token        string `json:"token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
+type tokenResponse struct {
 	Token string `json:"token"`
 }

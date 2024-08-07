@@ -52,7 +52,13 @@ func postUser(res http.ResponseWriter, req *http.Request) {
 }
 
 func putUser(res http.ResponseWriter, req *http.Request) {
-	authorization := req.Header.Get("Authorization")[7:]
+	authHeader := req.Header.Get("Authorization")
+	if len(authHeader) < 7 {
+		handleApiError(nil, "unauthorized", 401, res)
+		return
+	}
+
+	authorization := authHeader[7:]
 	userId, err := validateJwt(authorization, apicfg.jwtSecret)
 	if err != nil {
 		handleApiError(nil, "unauthorized", 401, res)
@@ -111,12 +117,12 @@ func postLogin(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	oneDay := 24 * 60 * 60
+	oneHour := 60 * 60
 	var expiry int
-	if reqUser.Expiry > 0 && reqUser.Expiry <= oneDay {
+	if reqUser.Expiry > 0 && reqUser.Expiry <= oneHour {
 		expiry = reqUser.Expiry
 	} else {
-		expiry = oneDay
+		expiry = oneHour
 	}
 
 	token, err := createJwt(expiry, dbUser.ID, apicfg.jwtSecret)
@@ -125,10 +131,17 @@ func postLogin(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	refreshToken, err := db.CreateToken(dbUser.ID)
+	if err != nil {
+		handleApiError(err, "error in CreateToken", 500, res)
+		return
+	}
+
 	resUser := userPasswordRedacted{
-		Email: dbUser.Email,
-		ID:    dbUser.ID,
-		Token: token,
+		Email:        dbUser.Email,
+		ID:           dbUser.ID,
+		Token:        token,
+		RefreshToken: refreshToken,
 	}
 
 	sendJsonResponse(resUser, res, 200)
