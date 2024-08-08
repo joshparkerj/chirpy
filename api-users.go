@@ -44,8 +44,9 @@ func postUser(res http.ResponseWriter, req *http.Request) {
 	}
 
 	resUser := userPasswordRedacted{
-		Email: user.Email,
-		ID:    user.ID,
+		Email:       user.Email,
+		ID:          user.ID,
+		IsChirpyRed: user.IsChirpyRed,
 	}
 
 	sendJsonResponse(resUser, res, 201)
@@ -78,8 +79,9 @@ func putUser(res http.ResponseWriter, req *http.Request) {
 	}
 
 	resUser := userPasswordRedacted{
-		Email: user.Email,
-		ID:    user.ID,
+		Email:       user.Email,
+		ID:          user.ID,
+		IsChirpyRed: user.IsChirpyRed,
 	}
 
 	sendJsonResponse(resUser, res, 200)
@@ -142,6 +144,7 @@ func postLogin(res http.ResponseWriter, req *http.Request) {
 		ID:           dbUser.ID,
 		Token:        token,
 		RefreshToken: refreshToken,
+		IsChirpyRed:  dbUser.IsChirpyRed,
 	}
 
 	sendJsonResponse(resUser, res, 200)

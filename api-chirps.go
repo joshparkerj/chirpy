@@ -47,7 +47,25 @@ func getChirps(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	sendOkJsonResponse(chirps, res)
+	authorId := req.URL.Query().Get("author_id")
+	if authorId != "" {
+		idNum, err := strconv.Atoi(authorId)
+		if err != nil {
+			handleApiError(err, "error in Atoi", 500, res)
+			return
+		}
+
+		filteredChirps := make([]Chirp, 0)
+		for _, chirp := range chirps {
+			if chirp.AuthorId == idNum {
+				filteredChirps = append(filteredChirps, chirp)
+			}
+		}
+
+		sendOkJsonResponse(filteredChirps, res)
+	} else {
+		sendOkJsonResponse(chirps, res)
+	}
 }
 
 func postChirp(res http.ResponseWriter, req *http.Request) {

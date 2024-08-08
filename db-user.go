@@ -86,3 +86,26 @@ func (db *DB) UpdateUser(email, password string, userId int) (user User, err err
 	db.writeDB(databaseStructure)
 	return
 }
+
+func (db *DB) UpgradeUser(userId int) (err error) {
+	err = db.ensureDB()
+	if err != nil {
+		return
+	}
+
+	databaseStructure, err := db.loadDB()
+	if err != nil {
+		return
+	}
+
+	user, ok := databaseStructure.Users[userId]
+	if !ok {
+		err = errors.New("user not found")
+		return
+	}
+
+	user.IsChirpyRed = true
+	databaseStructure.Users[userId] = user
+	db.writeDB(databaseStructure)
+	return
+}

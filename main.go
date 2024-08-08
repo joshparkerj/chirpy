@@ -13,6 +13,7 @@ func main() {
 	apicfg = apiConfig{
 		fileserverHits: 0,
 		jwtSecret:      os.Getenv("JWT_SECRET"),
+		polkaApiKey:    os.Getenv("POLKA_API_KEY"),
 	}
 
 	sm := http.NewServeMux()
@@ -50,6 +51,8 @@ func main() {
 	sm.HandleFunc("/", handleHomePage)
 
 	sm.HandleFunc("DELETE /api/chirps/{chirpID}", deleteChirp)
+
+	sm.HandleFunc("POST /api/polka/webhooks", polkaWebhooks)
 
 	defaultPort := os.Getenv("PORT")
 	server := &http.Server{

@@ -23,8 +23,18 @@ type userPasswordRedacted struct {
 	Email        string `json:"email"`
 	Token        string `json:"token"`
 	RefreshToken string `json:"refresh_token"`
+	IsChirpyRed  bool   `json:"is_chirpy_red"`
 }
 
 type tokenResponse struct {
 	Token string `json:"token"`
+}
+
+type polkaEventData struct {
+	UserID int `json:"user_id"`
+}
+
+type polkaEvent struct {
+	Event string         `json:"event"`
+	Data  polkaEventData `json:"data"`
 }
