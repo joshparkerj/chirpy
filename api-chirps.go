@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strconv"
 )
 
@@ -47,6 +48,18 @@ func getChirps(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	var cmp func(a, b Chirp) int
+	sort := req.URL.Query().Get("sort")
+	if sort == "desc" {
+		cmp = func(a, b Chirp) int {
+			return b.ID - a.ID
+		}
+	} else {
+		cmp = func(a, b Chirp) int {
+			return a.ID - b.ID
+		}
+	}
+
 	authorId := req.URL.Query().Get("author_id")
 	if authorId != "" {
 		idNum, err := strconv.Atoi(authorId)
@@ -62,8 +75,10 @@ func getChirps(res http.ResponseWriter, req *http.Request) {
 			}
 		}
 
+		slices.SortFunc(filteredChirps, cmp)
 		sendOkJsonResponse(filteredChirps, res)
 	} else {
+		slices.SortFunc(chirps, cmp)
 		sendOkJsonResponse(chirps, res)
 	}
 }
